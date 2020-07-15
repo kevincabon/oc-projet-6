@@ -5,6 +5,7 @@ const User = require('../models/User');
 const { Error } = require('mongoose');
 
 exports.signup = (req, res, next) => {
+    validatePassword(req.body.password, res);
     bcrypt.hash(req.body.password, 10)
         .then(hash => {
             const user = new User({
@@ -44,3 +45,29 @@ exports.login = (req, res, next) => {
             res.status(500).json({ error })
         })
 };
+
+function validatePassword(p, res) {
+    var errors = [];
+    if (p.length < 8) {
+        errors.push("Votre mot de passe doit contenir au moins 8 caractères."); 
+    }
+    if (p.search(/[a-z]/i) < 0) {
+        errors.push("Votre mot de passe doit contenir au moins une lettre.");
+    }
+    if (p.search(/[A-Z]/) < 0) {
+        errors.push("Votre mot de passe doit contenir au moins une majuscule.");
+    }
+    if (p.search(/[0-9]/) < 0) {
+        errors.push("Votre mot de passe doit contenir au moins un chiffre."); 
+    }
+    if (p.search(/[&#(_)$!]/) < 0) {
+        errors.push("Votre mot de passe doit contenir au moins un des caractères spéciaux suivant : &#(_)$!"); 
+    }
+    if (p.search(/[<>':%?;=+]/) > 0) {
+        errors.push("Votre mot de passe doit contenir seulement un des ces caractères spéciaux suivant : &#(_)$!"); 
+    }
+    if (errors.length > 0) {
+        return res.status(400).json({ error: errors });
+    }
+    return true;
+}
